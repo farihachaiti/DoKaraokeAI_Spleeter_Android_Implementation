@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000"
+    tools:context=".MainActivity2"
+    tools:ignore="ExtraText">
+
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/text_input_layout"
+        android:layout_width="326dp"
+        android:layout_height="77dp"
+        android:fontFamily="@font/arima_madurai_bold"
+        app:layout_constraintBottom_toTopOf="@+id/extract_audio"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints">
+
+
+        <EditText
+            android:id="@+id/editTextTLink"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autofillHints=""
+            android:colorAccent="#9A9797"
+            android:colorControlNormal="#ffffff"
+            android:ems="10"
+            android:fadingEdge="horizontal"
+            android:fontFamily="@font/arima_madurai_bold"
+            android:hint="@string/put_url_or_pick_file"
+            android:inputType="textPersonName"
+            android:textColor="#ffffff"
+            android:textColorHint="#9A9797"
+            app:layout_constraintBottom_toTopOf="@+id/extract_audio"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.496"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/text_input_layout"
+            app:layout_constraintVertical_bias="0.557" />
+
+
+    </android.support.design.widget.TextInputLayout>
+
+
+    <Button
+        android:id="@+id/download_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_bg"
+        android:colorAccent="#000000"
+        android:fontFamily="@font/arima_madurai_bold"
+        android:text="@string/download"
+        android:textAllCaps="false"
+        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="#ffffff"
+        android:radius= "10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.767"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.405"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/pick_file"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/button_bg"
+        android:colorAccent="#000000"
+        android:fontFamily="@font/arima_madurai_bold"
+        android:text="@string/pick_file"
+        android:textAllCaps="false"
+        android:textColor="#ffffff"
+        android:radius= "10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/download_btn"
+        app:layout_constraintHorizontal_bias="0.417"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.405"
+        tools:ignore="MissingConstraints" />
+
+
+    <Button
+        android:id="@+id/extract_audio"
+        android:layout_width="131dp"
+        android:layout_height="33dp"
+        android:background="@drawable/button_bg"
+        android:colorAccent="#000000"
+        android:fontFamily="@font/arima_madurai_bold"
+        android:text="@string/extract_audio"
+        android:textAllCaps="false"
+        android:textColor="#ffffff"
+        android:topLeftRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.153"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.532"
+        tools:ignore="MissingConstraints" />
+
+    <Button
+        android:id="@+id/extract_vocal"
+        android:layout_width="132dp"
+        android:layout_height="39dp"
+        android:background="@drawable/button_bg"
+        android:colorAccent="#000000"
+        android:fontFamily="@font/arima_madurai_bold"
+        android:text="@string/extract_vocal"
+        android:textAllCaps="false"
+        android:textColor="#ffffff"
+        android:topLeftRadius="10dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.822"
+        app:layout_constraintStart_toStartOf="@+id/extract_audio"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.536"
+        tools:ignore="MissingConstraints" />
+
+
+
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="354dp"
+        android:layout_height="208dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/text_input_layout"
+        app:layout_constraintVertical_bias="0.735" />
+
+
+</android.support.constraint.ConstraintLayout>

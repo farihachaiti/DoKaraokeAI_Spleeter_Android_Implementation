@@ -1,0 +1,19 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">#8A8495</item>
+        <item name="colorPrimaryDark">#2B2B2B</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="fontFamily">@font/arima_madurai_bold</item>
+
+    </style>
+
+    <style name="CustomProgressDialog" parent="Theme.AppCompat.Dialog">
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:width">600dp</item>
+        <item name="android:height">600dp</item>
+    </style>
+
+</resources>

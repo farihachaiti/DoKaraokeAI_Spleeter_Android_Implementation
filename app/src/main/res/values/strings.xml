@@ -1,0 +1,19 @@
+<resources>
+    <string name="edit_message">Enter a Message</string>
+    <string name="button_text">Show</string>
+    <string name="app_name">Do Karaoke AI</string>
+    <string name="please_provide_url">Please provide Url</string>
+    <string name="download">Download</string>
+    <string name="pick_file">Pick File</string>
+    <string name="put_url_or_pick_file">Put Url or Pick File</string>
+    <string name="extract_audio">Extract Audio</string>
+    <string name="extract_vocal">Extract Vocal</string>
+    <string name="pick_media">Pick Media</string>
+    <string name="cancel">Cancel</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="action_help">Help</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_files">View Files</string>
+    <string name="no_audio_track">No Audio Track !</string>
+</resources>
