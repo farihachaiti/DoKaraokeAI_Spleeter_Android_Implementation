@@ -1,5 +1,7 @@
 package com.example.dokaraokeAI;
 
+import android.util.Log;
+
 import org.apache.commons.math3.complex.Complex;
 import org.apache.commons.math3.transform.DftNormalization;
 import org.apache.commons.math3.transform.FastFourierTransformer;
@@ -374,7 +376,7 @@ public class AudioFeatureExtraction {
     /**
      * This function extracts the inverse STFT values as complex values
      *
-     * @param y
+     * @param
      * @return
      */
 
@@ -487,7 +489,7 @@ public class AudioFeatureExtraction {
     /**
      * This function pads the y values
      *
-     * @param y
+     * @param
      * @return
      */
 
@@ -499,12 +501,17 @@ public class AudioFeatureExtraction {
 
 
             double[] ypad = new double[n_fft + yValues.length];
-            for (int i = 0; i < n_fft / 2; i++) {
-                ypad[(n_fft / 2) - i - 1] = yValues[i + 1];
-                ypad[(n_fft / 2) + yValues.length + i] = yValues[yValues.length - 2 - i];
+            for (int i = 0; i < (n_fft / 2) ; i++) {
+               // Log.d("TTT0", String.valueOf(yValues[i+1]));
+               // Log.d("TTT1", String.valueOf( ypad[(n_fft / 2) - i - 1]));
+                if(yValues.length>i+1)
+                    ypad[(n_fft / 2) - i - 1] = yValues[i + 1];
+                if(yValues.length>(yValues.length-2-i) && (yValues.length-2-i)>=0)
+                    ypad[(n_fft / 2) + yValues.length + i] = yValues[yValues.length - 2 - i];
             }
             for (int j = 0; j < yValues.length; j++) {
-                ypad[(n_fft / 2) + j] = yValues[j];
+                if(yValues.length>j)
+                    ypad[(n_fft / 2) + j] = yValues[j];
             }
 
             frame = yFrame(ypad);
