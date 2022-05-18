@@ -4,19 +4,13 @@ package com.example.dokaraokeAI;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
-import android.view.View;
 import android.webkit.URLUtil;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
 import android.widget.Toast;
 
 import com.arthenica.mobileffmpeg.FFmpeg;
@@ -34,7 +28,6 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.IntToDoubleFunction;
@@ -95,6 +88,7 @@ public final class SplitVocal extends AsyncTask {
         this.dialog = pd;
         this.path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS + "/doKaraokeAI/result/");
         this.targetFile = null;
+
     }
 
     public final void processAudioSeparation(@NotNull String audioFilePath, @NotNull Context context) throws FileFormatNotSupportedException, IOException, WavFileException {
@@ -222,8 +216,8 @@ public final class SplitVocal extends AsyncTask {
         return procConsInstValuesList;
     }
 
-    private final void saveWavFromMagValues(List instrumentMagValues, int fileSuffix, String audioInputFileName, String audioInputFilePath) throws IOException {
-        byte[] byteArray = this.convertDoubleArrayToByteArray(instrumentMagValues);
+    private final void saveWavFromMagValues(List instrumentMagValues, int fileSuffix, String audioInputFileName, String audioInputFilePath) throws IOException, FileFormatNotSupportedException, WavFileException {
+        byte[] byteArray = this.convertFloatArrayToByteArray(instrumentMagValues);
        // File var10000 = Environment.getExternalStorageDirectory();
 
      //   Intrinsics.checkNotNullExpressionValue(var10000, "Environment.getExternalStorageDirectory()");
@@ -235,15 +229,26 @@ public final class SplitVocal extends AsyncTask {
         String sampleOutputFile = path.getAbsolutePath() + "/bytes_j.txt";
 
       // Intrinsics.checkNotNullExpressionValue(var18, "Config.registerNewFFmpegPipe(MyApp.getContext())");
+
+
+
         String pipe1 = registerNewFFmpegPipe(context);
         try {
-            File file = new File(outputPath_1);
+            /*File file = new File(outputPath_1);
             if(!file.getParentFile().exists())
                 file.getParentFile().mkdirs();
             if(!file.exists())
-                file.createNewFile();
+                file.createNewFile();*/
 
-            OutputStream os = new FileOutputStream(file);
+            //OutputStream os = new FileOutputStream(file);
+
+            File sampleOutputFileFinal = new File(sampleOutputFile);
+            if(!sampleOutputFileFinal.getParentFile().exists())
+                sampleOutputFileFinal.getParentFile().mkdirs();
+            if(!sampleOutputFileFinal.exists())
+                sampleOutputFileFinal.createNewFile();
+
+            OutputStream os = new FileOutputStream(sampleOutputFileFinal);
             os.write(byteArray);
 
             String var17 = "Successfully byte inserted";
@@ -269,15 +274,20 @@ public final class SplitVocal extends AsyncTask {
         if(!audioOutputFile.exists())
             audioOutputFile.createNewFile();
 
+
+
         String command_ = "-i " + audioInputFile + " -c:a pcm_s16le -af \"bandreject=f=900:width_type=h:w=800, bandreject=f=900:width_type=h:w=1000\" " + audioOutputFile + " -y";
 
         String command = "-i " + audioInputFile + " -af pan=\"stereo|c0=c0|c1=-1*c1\" -ac 2 " + audioOutputFile + " -y";
         //String command = "ffmpeg -i " + audioInputFile + " -f wav -ac 1 " + audioOutputFile;
         String ffmpegCommand = "-f f32le -ac 2 -ar 44100 -i " + pipe1 + " -b:a 128k -ar 44100 -strict -2 " + outputPath_1 + " -y";
+        String ffmpegCommand2 = "-f f32le -ac 2 -ar 22500 -i " + pipe1 + " -b:a 128k -ar 22500 -strict -2 " + outputPath_1 + " -y";
         Runtime.getRuntime().exec(new String[]{"sh", "-c", "cat " + sampleOutputFile + " > " + pipe1});
-        FFmpeg.execute(command);
+        FFmpeg.execute(ffmpegCommand);
         targetFile = audioOutputFile;
 
+
+        denoiseOutputFile(outputPath_1);
     }
 
 
@@ -313,7 +323,7 @@ public final class SplitVocal extends AsyncTask {
 
 
 
-   /* private final void denoiseOutputFile(String outputPath) throws FileFormatNotSupportedException, IOException, WavFileException {
+    private final void denoiseOutputFile(String outputPath) throws FileFormatNotSupportedException, IOException, WavFileException {
         int defaultSampleRate = -1;
         int defaultAudioDuration = -1;
         JLibrosa jLibrosa = new JLibrosa();
@@ -323,35 +333,36 @@ public final class SplitVocal extends AsyncTask {
         int sampleRate = '걄';
         Complex[][] stftComplexValues = jLibrosa.generateSTFTFeaturesWithPadOption(normalizedStereoFeatureValues, sampleRate, 40, 256, 128, 64, true);
         Intrinsics.checkNotNullExpressionValue(stftComplexValues, "stftComplexValues");
-        double meanSTFTComplexVal = this.getMean2DArray(stftComplexValues);
-        double stdDevSTFTComplexVal = this.getStdDeviation2DArray(stftComplexValues, meanSTFTComplexVal);
-        Double[][] phaseAngleSTFTTransposedFeatures = this.getAngleFromComplexNumberWithTranspose(stftComplexValues);
+        float meanSTFTComplexVal = (float) this.getMean2DArray(stftComplexValues);
+        float stdDevSTFTComplexVal = (float) this.getStdDeviation2DArray(stftComplexValues, meanSTFTComplexVal);
+        float[][] phaseAngleSTFTTransposedFeatures = this.getAngleFromComplexNumberWithTranspose(stftComplexValues);
+       // Log.d("TTT0",phaseAngleSTFTTransposedFeatures.toString());
         float[][] processedSTFTComplexValues = this.processSTFTValues(stftComplexValues, meanSTFTComplexVal, stdDevSTFTComplexVal);
-        double[][][][] processedInputFeatures = this.prepareInputFeatureForDenoiser(processedSTFTComplexValues);
+        float[][][][] processedInputFeatures = this.prepareInputFeatureForDenoiser(processedSTFTComplexValues);
         String denoiserModelName = "denoiser.tflite";
         int i = ((Object[]) processedInputFeatures).length;
-        double[][][][] var19 = new double[i][][][];
+        float[][][][] var19 = new float[i][][][];
 
         boolean var22;
         int var23;
-        double[][][] var44;
+        float[][][] var44;
         for (int var20 = 0; var20 < i; ++var20) {
             var22 = false;
             var23 = ((Object[]) processedInputFeatures[0]).length;
-            double[][][] var24 = new double[var23][][];
+            float[][][] var24 = new float[var23][][];
 
             for (int var25 = 0; var25 < var23; ++var25) {
                 boolean var29 = false;
                 byte var30 = 1;
-                double[][] var31 = new double[var30][];
+                float[][] var31 = new float[var30][];
 
                 for (int var32 = 0; var32 < var30; ++var32) {
                     boolean var36 = false;
-                    double[] var37 = new double[1];
+                    float[] var37 = new float[1];
                     var31[var32] = var37;
                 }
 
-                double[][] var38 = var31;
+                float[][] var38 = var31;
                 var24[var25] = var38;
             }
 
@@ -365,25 +376,25 @@ public final class SplitVocal extends AsyncTask {
         byte var21;
         for (int var46 = ((Object[]) processedInputFeatures).length; i < var46; ++i) {
             var21 = 1;
-            double[][][][] var50 = new double[var21][][][];
+            float[][][][] var50 = new float[var21][][][];
 
             for (var23 = 0; var23 < var21; ++var23) {
                 boolean var51 = false;
                 int var26 = ((Object[]) processedInputFeatures[0]).length;
-                double[][][] var27 = new double[var26][][];
+                float[][][] var27 = new float[var26][][];
 
                 for (int var28 = 0; var28 < var26; ++var28) {
                     boolean var52 = false;
                     int var33 = ((Object[]) processedInputFeatures[0][0]).length;
-                    double[][] var34 = new double[var33][];
+                    float[][] var34 = new float[var33][];
 
                     for (int var35 = 0; var35 < var33; ++var35) {
                         boolean var39 = false;
-                        double[] var40 = new double[processedInputFeatures[0][0][0].length];
+                        float[] var40 = new float[processedInputFeatures[0][0][0].length];
                         var34[var35] = var40;
                     }
 
-                    double[][] var41 = var34;
+                    float[][] var41 = var34;
                     var27[var28] = var41;
                 }
 
@@ -391,7 +402,7 @@ public final class SplitVocal extends AsyncTask {
                 var50[var23] = var44;
             }
 
-            double[][][][] subsetProcInpFeatures =  var50;
+            float[][][][] subsetProcInpFeatures =  var50;
             subsetProcInpFeatures[0] = processedInputFeatures[i];
             float[][][][] predResult = this.executePredictionsFromTFLiteModelAsArray(denoiserModelName, subsetProcInpFeatures);
             consOutputFromModel[i] = predResult[0];
@@ -401,25 +412,25 @@ public final class SplitVocal extends AsyncTask {
         this.deNormalizeStereoFeatureValues(magValues);
         List mutableMagList = (List) (new ArrayList());
         mutableMagList.add(magValues);
-        this.saveWavFromMagValues(mutableMagList, 0, "denoised_output");
+        saveWavFromMagValues(mutableMagList, 0, "denoised_output", this.path.getAbsolutePath());
         var21 = 1;
         var22 = false;
         System.out.print(var21);
     }
-*/
-    private final Double[][] getAngleFromComplexNumberWithTranspose(Complex[][] stftComplexValues) {
+
+    private final float[][] getAngleFromComplexNumberWithTranspose(Complex[][] stftComplexValues) {
         int i = ((Object[]) stftComplexValues).length;
-        Double[][] var4 = new Double[i][];
+        float[][] var4 = new float[i][];
 
         int j;
-        Double[] var11;
+        float[] var11;
         for (j = 0; j < i; ++j) {
             boolean var7 = false;
-            var11 = new Double[stftComplexValues[0].length];
+            var11 = new float[stftComplexValues[0].length];
             var4[j] = var11;
         }
 
-        Double[][] angleSTFTComplexValues = (Double[][]) var4;
+        float[][] angleSTFTComplexValues = (float[][]) var4;
         i = 0;
 
 
@@ -427,26 +438,26 @@ public final class SplitVocal extends AsyncTask {
             j = 0;
 
             for (j = stftComplexValues[0].length; j < j; ++j) {
-                angleSTFTComplexValues[i][j] = (Double) Math.atan2(stftComplexValues[i][j].getImaginary(), stftComplexValues[i][j].getReal());
+                angleSTFTComplexValues[i][j] = (float) Math.atan2(stftComplexValues[i][j].getImaginary(), stftComplexValues[i][j].getReal());
             }
         }
 
         i = stftComplexValues[0].length;
-        Double[][] var14 = new Double[i][];
+        float[][] var14 = new float[i][];
 
         for (j = 0; j < i; ++j) {
             boolean var8 = false;
-            var11 = new Double[((Object[]) stftComplexValues).length];
+            var11 = new float[((Object[]) stftComplexValues).length];
             var14[j] = var11;
         }
 
-        Double[][] transposedAngleSTFTComplexValues = (Double[][]) var14;
+        float[][] transposedAngleSTFTComplexValues = (float[][]) var14;
         i = 0;
+        j = 0;
 
-        for (j = ((Object[]) angleSTFTComplexValues).length; i < j; ++i) {
-            j = 0;
-
-            for (int var15 = angleSTFTComplexValues[0].length; j < var15; ++j) {
+        for (i = 0; i<((Object[]) angleSTFTComplexValues).length; ++i) {
+            for (j=0; j< angleSTFTComplexValues[0].length; ++j) {
+           //     if (index < 0 || index >= array.length)
                 transposedAngleSTFTComplexValues[j][i] = angleSTFTComplexValues[i][j];
             }
         }
@@ -454,7 +465,8 @@ public final class SplitVocal extends AsyncTask {
         return transposedAngleSTFTComplexValues;
     }
 
-    private final float[] revertFeaturesToAudio(float[][][][] consOutputFeatureValue, Double[][] angleSTFTTransposedFeatures, double meanValue, double stdDevVal) {
+    private final float[] revertFeaturesToAudio(float[][][][] consOutputFeatureValue, float[][] angleSTFTTransposedFeatures, double meanValue, double stdDevVal) {
+
         int i = ((Object[]) consOutputFeatureValue[0]).length;
         Complex[][] var9 = new Complex[i][];
 
@@ -476,20 +488,18 @@ public final class SplitVocal extends AsyncTask {
         }
 
         Complex[][] squeezedFeatureValue = (Complex[][]) var9;
-        i = 0;
 
-        for (int var25 = ((Object[]) consOutputFeatureValue).length; i < var25; ++i) {
-            j = 0;
 
-            for (int var11 = ((Object[]) consOutputFeatureValue[0]).length; j < var11; ++j) {
-                int k = 0;
+        for (i = 0;i<consOutputFeatureValue.length; ++i) {
 
-                for (var13 = ((Object[]) consOutputFeatureValue[0][0]).length; k < var13; ++k) {
-                    int l = 0;
+            for (j = 0; j<consOutputFeatureValue[0].length;  ++j) {
 
-                    for (var15 = consOutputFeatureValue[0][0][0].length; l < var15; ++l) {
+                for (int k = 0; k<consOutputFeatureValue[0][0].length; ++k) {
+
+
+                    for (int l = 0; l<consOutputFeatureValue[0][0][0].length;++l) {
                         Complex phaseComplexConst = new Complex(0.0D, 1.0D);
-                        Complex featPhaseProdValue = phaseComplexConst.multiply((double) angleSTFTTransposedFeatures[i][j]);
+                        Complex featPhaseProdValue = phaseComplexConst.multiply(angleSTFTTransposedFeatures[i][j]);
                         Intrinsics.checkNotNullExpressionValue(featPhaseProdValue, "featPhaseProdValue");
                         Complex expPhase = this.expOfComplexNumber(featPhaseProdValue);
                         double featValue = (double) consOutputFeatureValue[i][j][k][l] * stdDevVal + meanValue;
@@ -521,20 +531,20 @@ public final class SplitVocal extends AsyncTask {
         return resultVal;
     }
 
-    private final double[][][][] prepareInputFeatureForDenoiser(float[][] procSTFTValues) {
+    private final float[][][][] prepareInputFeatureForDenoiser(float[][] procSTFTValues) {
         int numFeatures = 129;
         int numSegments = 8;
         int i = ((Object[]) procSTFTValues).length;
-        double[][] var6 = new double[i][];
+        float[][] var6 = new float[i][];
 
         int j;
         for (j = 0; j < i; ++j) {
             boolean var9 = false;
-            double[] var29 = new double[procSTFTValues[0].length + numSegments - 1];
+            float[] var29 = new float[procSTFTValues[0].length + numSegments - 1];
             var6[j] = var29;
         }
 
-        double[][] noisySTFT = (double[][]) var6;
+        float[][] noisySTFT = (float[][]) var6;
         i = 0;
 
 
@@ -552,45 +562,45 @@ public final class SplitVocal extends AsyncTask {
         }
 
         i = noisySTFT[1].length - numSegments + 1;
-        double[][][][] var32 = new double[i][][][];
+        float[][][][] var32 = new float[i][][][];
 
         short var11;
         for (j = 0; j < i; ++j) {
             boolean var10 = false;
             var11 = (short) numFeatures;
-            double[][][] var12 = new double[numFeatures][][];
+            float[][][] var12 = new float[numFeatures][][];
 
             for (int var13 = 0; var13 < var11; ++var13) {
                 boolean var17 = false;
                 byte var18 = (byte) numSegments;
-                double[][] var19 = new double[numSegments][];
+                float[][] var19 = new float[numSegments][];
 
                 for (int var20 = 0; var20 < var18; ++var20) {
                     boolean var24 = false;
-                    double[] var25 = new double[1];
+                    float[] var25 = new float[1];
                     var19[var20] = var25;
                 }
 
-                double[][] var26 =  var19;
+                float[][] var26 =  var19;
                 var12[var13] = var26;
             }
 
-            double[][][] var37 = var12;
+            float[][][] var37 = var12;
             var32[j] = var37;
         }
 
-        double[][][][] nInpFeatureSTFT =  var32;
-        i = 0;
+        float[][][][] nInpFeatureSTFT =  var32;
+       // i = 0;
 
-        for (j = noisySTFT[1].length - numSegments + 1; i < j; ++i) {
-            j = 0;
+        for (i = 0; i< noisySTFT[1].length - numSegments + 1; ++i) {
+          //  j = 0;
 
-            for (byte var34 = (byte) numSegments; j < var34; ++j) {
-                int k = 0;
+            for (j = 0 ; j< numSegments; ++j) {
+            //    int k = 0;
 
-                for (var11 = (short) numFeatures; k < var11; ++k) {
+                for (int k = 0; k<numFeatures; ++k) {
                     int jNew = i + j;
-                    nInpFeatureSTFT[i][k][j][0] = (Double) noisySTFT[k][jNew];
+                    nInpFeatureSTFT[i][k][j][0] = noisySTFT[k][jNew];
                 }
             }
         }
@@ -712,38 +722,29 @@ public final class SplitVocal extends AsyncTask {
         return normalizedStereoFeatValues;
     }
 
-    private final byte[] convertDoubleArrayToByteArray(List stereoArray) throws IOException {
-        Log.d("myError1", String.valueOf(stereoArray.get(0)));
-        Log.d("myError2", String.valueOf(stereoArray));
-        Log.d("myError3", String.valueOf(stereoArray.size()));
+    private final byte[] convertFloatArrayToByteArray(List stereoArray) throws IOException {
+
         float[] array = (float[]) stereoArray.get(0);
-     //   Arrays.fill(array, arr);
-        ByteArrayOutputStream bas = new ByteArrayOutputStream();
-        DataOutputStream ds = new DataOutputStream(bas);
-        for (float f : array)
-            ds.writeFloat(f);
-        byte[] consByteArray = bas.toByteArray();
-  //      int n_channels = 2;
 
-       /* byte[] consByteArray = new byte[4 * array.length * n_channels];
-        int i = 0;
+        int n_channels = 2;
 
-        for (int var6 = array.length; i < var6; ++i) {
-            int j = 0;
+        byte[] consByteArray = new byte[4 * array.length * n_channels];
 
-            for (int var8 = ((Collection) stereoArray).size(); j < var8; ++j) {
-                byte[] byteArray = ByteBuffer.allocate(4).putDouble(((double[]) stereoArray.get(j))[i]).array();
+        for (int i = 0; i<array.length; ++i) {
+
+            for (int j = 0; j< stereoArray.size();  ++j) {
+                byte[] byteArray = ByteBuffer.allocate(4).putFloat(((float[]) stereoArray.get(j))[i]).array();
                 Intrinsics.checkNotNullExpressionValue(byteArray, "byteArray");
                 byte[] leByteArray = this.convertBigEndianToLittleEndian(byteArray);
-                int k = 0;
+
                 Intrinsics.checkNotNull(leByteArray);
 
-                for (int var12 = leByteArray.length; k < var12; ++k) {
+                for (int k = 0; k< leByteArray.length; ++k) {
                     consByteArray[i * 8 + j * 4 + k] = leByteArray[k];
                 }
             }
         }
-*/
+
         return consByteArray;
     }
 
@@ -1423,17 +1424,14 @@ public final class SplitVocal extends AsyncTask {
 
     @Override
     protected void onPreExecute() {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
+
                 Toast toast = Toast.makeText(context, "Creating Karaoke Track...", Toast.LENGTH_SHORT);
                 toast.show();
             }
-        });
-
-
-        ShowProgress progress = new ShowProgress(dialog, "Karaoke Track ...");
-        progress.execute();
+        },100);
 
         super.onPreExecute();
     }
@@ -1453,7 +1451,7 @@ public final class SplitVocal extends AsyncTask {
         }
 
 
-        MainActivity2.changeActivity(context);
+
 
         return "null";
     }
@@ -1462,7 +1460,10 @@ public final class SplitVocal extends AsyncTask {
 
     @Override
     protected void onPostExecute(Object o) {
-        ShowProgress.dialogDismiss();
+        if(dialog!=null && dialog.isShowing()) {
+            ShowProgress.dialogDismiss();
+            dialog = null;
+        }
         cancel(true);
         Uri outUri = Uri.fromFile(targetFile);
         MusicPlayer.SoundPlayer(context,outUri);
@@ -1473,7 +1474,7 @@ public final class SplitVocal extends AsyncTask {
             Toast toast = Toast.makeText(context, "Karaoke Track created!", Toast.LENGTH_SHORT);
             toast.show();
         });
-
+        MainActivity2.changeActivity(context);
         super.onPostExecute(o);
     }
 
